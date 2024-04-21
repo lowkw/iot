@@ -3,7 +3,7 @@
 #include <WiFi.h>
 #include <Adafruit_MQTT.h>
 #include <Adafruit_MQTT_Client.h>
-#include <config.h>
+#include "config.h"
 
 #define GPIO_LED_GREEN  GPIO_NUM_18   /* Briefly flash if door is closed */
 #define GPIO_LED_RED    GPIO_NUM_19   /* Briefly flash if door is open */
@@ -23,7 +23,9 @@ void setup() {
   print_wakeup_cause();
   const int pin_state = digitalRead(GPIO_SWITCH);
   Serial.printf("Pin state is : %d\n ", pin_state);
+  //wifi_connect();
   flash_led(pin_state);     
+  wifi_connect(pin_state);
 
   // Make sure to pull up the sensor input,
   rtc_gpio_pullup_en(GPIO_SWITCH);
@@ -57,6 +59,23 @@ void flash_led(const int pin_state) {
   delay(50);  
   gpio_set_level(GPIO_LED_RED, 1);
   gpio_set_level(GPIO_LED_GREEN, 1);  
+}
+
+void wifi_connect(const int pin_state) {
+  WiFi.begin(WIFI_SSID, WIFI_PASS);
+  Serial.print("Connecting to ");
+  Serial.println(WIFI_SSID);
+  
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+  Serial.println();
+
+  Serial.println("WiFi connected");
+  Serial.print("IP address: ");
+  Serial.println(WiFi.localIP());  
+  flash_led(pin_state);
 }
 
 void loop() {  
